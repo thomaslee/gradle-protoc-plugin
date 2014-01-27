@@ -15,23 +15,17 @@ import org.gradle.api.GradleException
 
 class ProtobufCompile extends DefaultTask {
     String protoc
-    NamedDomainObjectContainer<ProtocPlugin> plugins
-    List<File> path
-    
-    ProtobufCompile() {
-        plugins = project.container(ProtocPlugin)
-        path = []
-        // inputs.files(project.fileTree("src/main/proto").include("**/*.proto"))
-    }
-    
+    NamedDomainObjectContainer<ProtocPlugin> plugins = project.container(ProtocPlugin)
+    List<File> path = []
+
     @TaskAction
     def invokeProtoc() {
         def command = buildCommand()
-        println command
+        println command.join(" ")
         ensureOutputDirectoriesExist()
         def p = command.execute()
         if (p.waitFor() != 0) {
-            throw new GradleException("${protoc} command failed")
+            throw new GradleException("${protocExecutable()} command failed")
         }
     }
 
@@ -39,7 +33,7 @@ class ProtobufCompile extends DefaultTask {
     def outputDirectories() {
         def result = []
         plugins.each { ProtocPlugin plugin ->
-            result << pluginOutDir(plugin)
+            result << (plugin.out != null ? plugin.out : project.file("src/main/${plugin.name}"))
         }
         return result
     }
@@ -57,8 +51,12 @@ class ProtobufCompile extends DefaultTask {
         }
     }
     
+    String protocExecutable() {
+        return (this.protoc != null ? this.protoc : project.protoc.executable)
+    }
+    
     List<String> buildCommand() {
-        def protoc = (this.protoc != null ? this.protoc : project.protoc.executable)
+        def protoc = protocExecutable()
         def command = [protoc]
         project.protoc.path.each { File includePath ->
             command << "-I${includePath.absolutePath}"
@@ -92,12 +90,7 @@ class ProtobufCompile extends DefaultTask {
         sources.each { command << it.absolutePath }
         return command
     }
-    
-    private File pluginOutDir(ProtocPlugin plugin) {
-        // FIXME code duplication: see buildCommand
-        return plugin.out != null ? plugin.out : project.file("src/main/${plugin.name}")
-    }
-    
+
     def protoc(String protoc) {
         this.protoc = protoc
     }
