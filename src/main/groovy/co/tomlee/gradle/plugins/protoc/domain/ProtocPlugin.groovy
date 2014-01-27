@@ -5,20 +5,20 @@ import org.gradle.api.GradleException
 
 class ProtocPlugin implements Named {
     final String name
-    String program
-    File outDir
+    String executable
+    File out
     LinkedHashMap<String, Object> options = new LinkedHashMap<>()
     
     public ProtocPlugin(String name) {
         this.name = name
     }
     
-    def outDir(File outDir) {
-        this.outDir = outDir
+    def out(File outDir) {
+        this.out = outDir
     }
     
-    def program(String program) {
-        this.program = program
+    def executable(String executable) {
+        this.executable = executable
     }
     
     def option(Map<String, Object> opt) {

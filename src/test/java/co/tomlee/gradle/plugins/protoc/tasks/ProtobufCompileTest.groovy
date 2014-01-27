@@ -20,9 +20,9 @@ class ProtobufCompileTest {
         
         project.file('src/main/proto').mkdirs()
         final FileOutputStream fileOutputStream = new FileOutputStream(project.file('src/main/proto/example.proto'))
-        final PrintWriter out = new PrintWriter(fileOutputStream)
+        final PrintWriter pw = new PrintWriter(fileOutputStream)
         try {
-            out.println("""
+            pw.println("""
 package example;
 
 option java_package = "co.tomlee.gradle.plugins.protoc.example";
@@ -33,7 +33,7 @@ message ExampleMessage {
 """)
         }
         finally {
-            out.close()
+            pw.close()
         }
         
         protoc.path(project.file("src/main/proto"))
@@ -42,7 +42,7 @@ message ExampleMessage {
             java
             cpp
             rpckit {
-                outDir project.file('src/main/java')
+                out project.file('src/main/java')
                 option java_stubs: true
                 option java_endpoints_httpservlet: true
                 option java_proxies_httpclient: true
@@ -52,17 +52,17 @@ message ExampleMessage {
         
         final ProtocPlugin javaPlugin = protoc.plugins.java
         assertNotNull(javaPlugin)
-        assertNull(javaPlugin.outDir)
+        assertNull(javaPlugin.out)
         assertEquals(0, javaPlugin.options.size())
         
         final ProtocPlugin cppPlugin = protoc.plugins.cpp
         assertNotNull(cppPlugin)
-        assertNull(cppPlugin.outDir)
+        assertNull(cppPlugin.out)
         assertEquals(0, cppPlugin.options.size())
         
         final ProtocPlugin rpckitPlugin = protoc.plugins.rpckit
         assertNotNull(rpckitPlugin)
-        assertEquals(project.file('src/main/java'), rpckitPlugin.outDir)
+        assertEquals(project.file('src/main/java'), rpckitPlugin.out)
         assertEquals(3, rpckitPlugin.options.size())
         
         List<String> command = protoc.buildCommand()

@@ -58,7 +58,7 @@ class ProtobufCompile extends DefaultTask {
     }
     
     List<String> buildCommand() {
-        def protoc = (this.protoc != null ? this.protoc : project.protoc.driver)
+        def protoc = (this.protoc != null ? this.protoc : project.protoc.executable)
         def command = [protoc]
         project.protoc.path.each { File includePath ->
             command << "-I${includePath.absolutePath}"
@@ -69,8 +69,8 @@ class ProtobufCompile extends DefaultTask {
         def builtins = ["java", "cpp", "python"]
         plugins.each { ProtocPlugin plugin ->
             if (!builtins.contains(plugin.name)) {
-                if (plugin.program) {
-                    command << "--plugin=${plugin.name}=${plugin.program}".toString()
+                if (plugin.executable != null) {
+                    command << "--plugin=${plugin.name}=${plugin.executable}".toString()
                 }
                 else {
                     command << "--plugin=${plugin.name}".toString()
@@ -82,7 +82,7 @@ class ProtobufCompile extends DefaultTask {
                 optionsPrefix = options + ":"
             }
             // FIXME code duplication: see pluginOutDir
-            def outDir = plugin.outDir != null ? plugin.outDir : project.file("src/main/${plugin.name}")
+            def outDir = plugin.out != null ? plugin.out : project.file("src/main/${plugin.name}")
             command << "--${plugin.name}_out=${optionsPrefix}${outDir.absolutePath}"
         }
         def sources = this.inputs.files
@@ -95,7 +95,7 @@ class ProtobufCompile extends DefaultTask {
     
     private File pluginOutDir(ProtocPlugin plugin) {
         // FIXME code duplication: see buildCommand
-        return plugin.outDir != null ? plugin.outDir : project.file("src/main/${plugin.name}")
+        return plugin.out != null ? plugin.out : project.file("src/main/${plugin.name}")
     }
     
     def protoc(String protoc) {
