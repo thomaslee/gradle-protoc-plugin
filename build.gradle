@@ -5,7 +5,7 @@ apply plugin: 'groovy'
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
-groupId = 'co.tomlee.gradle.plugins'
+group = 'co.tomlee.gradle.plugins'
 version = '0.0.1'
 
 jar {
@@ -20,11 +20,7 @@ repositories {
 
 dependencies {
     compile gradleApi()
-    compile localGroovy()
-}
-
-test {
-    systemProperties 'property': 'value'
+    compile 'org.codehaus.groovy:groovy-all:1.8.0'
 }
 
 uploadArchives {
