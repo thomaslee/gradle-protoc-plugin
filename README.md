@@ -8,6 +8,11 @@ Beta
 
 A Gradle plugin for protoc, the code generator behind Google's Protocol Buffers.
 
+Most Gradle plugins out there don't seem to do a great job of external *protoc*
+plugins (e.g. my own [rpckit](http://github.com/thomaslee/protoc-gen-rpckit)).
+This  particular Gradle plugin tries to make the interface to third party
+protoc language support & plugins just as easy as for built-in languages.
+
 ## Usage
 
     //
