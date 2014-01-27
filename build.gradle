@@ -1,12 +1,14 @@
-apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'signing'
 apply plugin: 'eclipse'
 apply plugin: 'groovy'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-
 group = 'co.tomlee.gradle.plugins'
 version = '0.0.1'
+
+configurations {
+    published.extendsFrom archives, signatures
+}
 
 jar {
     manifest {
@@ -23,10 +25,66 @@ dependencies {
     compile 'org.codehaus.groovy:groovy-all:1.8.0'
 }
 
-uploadArchives {
-    repositories {
-       flatDir {
-           dirs 'repos'
-       }
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.6'
+}
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.groovy
+}
+
+task javadocJar(type: Jar, dependsOn: groovydoc) {
+    classifier = 'javadoc'
+    from fileTree(groovydoc.destinationDir)
+}
+
+artifacts {
+    archives javadocJar, sourceJar
+}
+
+signing {
+    required {
+        gradle.taskGraph.hasTask('uploadPublished')
     }
+    sign configurations.archives
+}
+
+install {
+    repositories.mavenInstaller {
+        pom.project(pomInfo)
+    }
+}
+
+def getPomInfo() {
+    return {
+        name('Gradle Protoc Plugin')
+        description('Gradle plugin for protoc, the code generator typically associated with Google\'s Protocol Buffers')
+        url('http://github.com/thomaslee/gradle-protoc-plugin')
+        scm {
+            connection('scm:git://github.com/thomaslee/gradle-protoc-plugin')
+            developerConnection('scm:git@github.com:thomaslee/gradle-protoc-plugin.git')
+            url('http://github.com/thomaslee/gradle-protoc-plugin')
+        }
+        developers {
+            developer {
+                id('thomaslee')
+                name('Tom Lee')
+                email('github@tomlee.co')
+            }
+        }
+        licenses {
+            license {
+                name 'The MIT License (MIT)'
+                url 'http://opensource.org/licenses/MIT'
+                distribution 'repo'
+            }
+        }
+    }
+}
+
+task dist(type: Zip) {
+    from jar.outputs.files
+    from sourceJar.outputs.files
+    from javadocJar.outputs.files
 }
