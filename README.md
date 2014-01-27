@@ -23,6 +23,8 @@ protoc language support & plugins just as easy as for built-in languages.
     }
 
     task compileProto(type: ProtobufCompile) {
+        ext.destinationDir = file("src/main/gen-java")
+
         inputs.files fileTree("src/main/proto").include("**/*.proto")
 
         //
@@ -39,16 +41,19 @@ protoc language support & plugins just as easy as for built-in languages.
                 // Output directory can be specified on a per-plugin basis.
                 // Default output directory is src/main/${plugin.name}
                 //
-                out file("src/main/java")
+                out destinationDir
             }
 
             //
             // External protoc plugins are supported too
             //
             some_external_plugin {
+                //
+                // Optional if the plugin is on your $PATH and looks like `protoc-gen-<name>`
+                //
                 executable "/usr/local/bin/some-external-protoc-plugin"
 
-                out file("src/main/java")
+                out destinationDir
 
                 //
                 // Options will be passed through to the protoc plugin on the command line.
@@ -62,7 +67,7 @@ protoc language support & plugins just as easy as for built-in languages.
     }
 
     compileJava.dependsOn compileProto
-    compileJava.source compileProto.outputs.dir
+    compileJava.source compileProto.destinationDir
 
 ## License
 
