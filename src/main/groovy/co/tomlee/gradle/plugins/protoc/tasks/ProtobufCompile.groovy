@@ -21,7 +21,7 @@ class ProtobufCompile extends DefaultTask {
     @TaskAction
     def invokeProtoc() {
         def command = buildCommand()
-        println command.join(" ")
+        project.logger.info(command.join(" "))
         ensureOutputDirectoriesExist()
         def p = command.execute()
         if (project.logger.quietEnabled) {
