@@ -24,7 +24,13 @@ class ProtobufCompile extends DefaultTask {
         println command.join(" ")
         ensureOutputDirectoriesExist()
         def p = command.execute()
-        if (p.waitFor() != 0) {
+        if (project.logger.quietEnabled) {
+            p.waitFor()
+        }
+        else {
+            p.waitForProcessOutput(System.out, System.err)
+        }
+        if (p.exitValue() != 0) {
             throw new GradleException("${protocExecutable()} command failed")
         }
     }
