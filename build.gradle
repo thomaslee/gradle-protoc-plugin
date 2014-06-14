@@ -4,7 +4,7 @@ apply plugin: 'eclipse'
 apply plugin: 'groovy'
 
 group = 'co.tomlee.gradle.plugins'
-version = '0.0.2'
+version = '0.0.3'
 
 configurations {
     published.extendsFrom archives, signatures
