@@ -15,35 +15,65 @@ protoc language support & plugins just as easy as for built-in languages.
 
 ## Usage
 
-    //
-    // This bit is completely optional
-    //
+### Minimal configuration
+
+    apply plugin: 'java'
+    apply plugin: 'protoc'
+
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+
+        dependencies {
+            classpath 'co.tomlee.gradle.plugins:gradle-protoc-plugin:0.0.3'
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        //
+        // Choose whatever version is appropriate here
+        //
+        compile 'com.google.protobuf:protobuf-java:2.5.0'
+    }
+
+This will:
+
+* Create a `compileProto` task and hook it up as a dependency of `compileJava`
+* Configure `compileProto` to inspect `src/main/proto` and write out Java code
+to `src/main/gen-java`.
+* Add `src/main/gen-java` to `sourceSets.main.java`
+* Create a `cleanProto` task and hook it up as a dependency of `clean`
+
+If you don't use `apply plugin: "java"`, the `compileProto` task will be created
+but will not be configured to generate Java code by default.
+
+### If protoc is not on your PATH
+
+This is only necessary if you want to use a `protoc` binary that is not on
+your `PATH`:
+
     protoc {
         executable "/usr/bin/protoc"
     }
 
-    task compileProto(type: ProtobufCompile) {
-        ext.destinationDir = file("src/main/gen-java")
+### Modifying the protoc include path
 
-        inputs.files fileTree("src/main/proto").include("**/*.proto")
+    protoc {
+        path "path/to/protofiles"
+        path "path/to/more/protofiles"
+    }
 
-        //
-        // You can meddle with the proto_path like so
-        //
-        path file('src/main/proto')
+### Using protoc plugins
 
+protoc version 2.3.0+ supports plugins, which is neat:
+
+    compileProto {
         plugins {
-            //
-            // Specify protoc plugins here, including builtins like java, cpp & python.
-            //
-            java {
-                //
-                // Output directory can be specified on a per-plugin basis.
-                // Default output directory is src/main/${plugin.name}
-                //
-                out destinationDir
-            }
-
             //
             // External protoc plugins are supported too
             //
@@ -66,8 +96,24 @@ protoc language support & plugins just as easy as for built-in languages.
         }
     }
 
-    compileJava.dependsOn compileProto
-    compileJava.source compileProto.destinationDir
+### Defining your own ProtobufCompile tasks
+
+    ext.destination = file("build/gen-proto")
+
+    sourceSets.main.java.srcDir destination.path
+
+    task myProtoCompile(type: ProtobufCompile) {
+        inputs.files fileTree("src/main/my-proto").include("**/*.proto")
+
+        plugins {
+            cpp {
+                out destination
+            }
+            python {
+                out destination
+            }
+        }
+    }
 
 ## License
 
