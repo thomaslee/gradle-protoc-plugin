@@ -1,18 +1,22 @@
+// vim: ft=groovy:sw=4:ts=4:expandtab
+
 apply plugin: 'maven'
-apply plugin: 'signing'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
 apply plugin: 'groovy'
+apply plugin: 'release'
+apply plugin: 'nexus'
 
 group = 'co.tomlee.gradle.plugins'
-version = '0.0.4'
 
-configurations {
-    published.extendsFrom archives, signatures
-}
+buildscript {
+    repositories {
+        mavenCentral()
+    }
 
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'Gradle Protoc Plugin', 'Implementation-Version': version
+    dependencies {
+        classpath 'co.tomlee.gradle.plugins:gradle-release-plugin:0.0.3'
+        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.3'
     }
 }
 
@@ -22,51 +26,14 @@ repositories {
 
 dependencies {
     compile gradleApi()
-    compile 'org.codehaus.groovy:groovy-all:1.8.0'
 }
 
 task wrapper(type: Wrapper) {
     gradleVersion = '1.6'
 }
 
-task sourceJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.groovy
-}
-
-task javadocJar(type: Jar, dependsOn: groovydoc) {
-    classifier = 'javadoc'
-    from fileTree(groovydoc.destinationDir)
-}
-
-artifacts {
-    archives javadocJar, sourceJar
-}
-
-signing {
-    sign configurations.archives
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: sonatypeUsername, password: sonatypePassword)
-            }
-            pom.project(pomInfo)
-        }
-    }
-}
-
-install {
-    repositories.mavenInstaller {
-        pom.project(pomInfo)
-    }
-}
-
-def getPomInfo() {
-    return {
+modifyPom {
+    project {
         name('Gradle Protoc Plugin')
         description('Gradle plugin for protoc, the code generator typically associated with Google\'s Protocol Buffers')
         url('http://github.com/thomaslee/gradle-protoc-plugin')
@@ -92,8 +59,7 @@ def getPomInfo() {
     }
 }
 
-task dist(type: Zip) {
-    from jar.outputs.files
-    from sourceJar.outputs.files
-    from javadocJar.outputs.files
+nexus {
+    sign = true
 }
+
